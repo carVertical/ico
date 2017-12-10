@@ -1,0 +1,6 @@
+.DS_Store
+
+/build
+truffle.js
+
+node_modules/
