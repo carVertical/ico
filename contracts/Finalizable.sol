@@ -10,6 +10,11 @@ contract Finalizable is Ownable {
 
   function Finalizable() Ownable() public {}
 
+  modifier notFinalized() {
+    require(!isFinalized);
+    _;
+  }
+
   function finalize() onlyOwner public {
     require(!isFinalized);
 

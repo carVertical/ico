@@ -56,7 +56,7 @@ contract cVEarlyBirdsCrowdsale is Finalizable {
   }
 
   // low level token purchase function
-  function buyTokens(address beneficiary) public payable {
+  function buyTokens(address beneficiary) notFinalized public payable {
     require(beneficiary != address(0));
     require(validPurchase());
 
