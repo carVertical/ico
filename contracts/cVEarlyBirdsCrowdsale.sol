@@ -33,7 +33,7 @@ contract cVEarlyBirdsCrowdsale is Finalizable {
   /**
    * Event for token ownership transfer
    * @param previousOwner who owned token before
-   * @param beneficiary who owns token now
+   * @param newOwner who owns token now
    */
   event TokenOwnershipTransferred(
     address indexed previousOwner,
