@@ -132,7 +132,7 @@ contract cVEarlyBirdsCrowdsale is Finalizable {
 
   /**
    * Post finalization actions.
-   * transfer token ownership to contract creator.
+   * transfer token ownership to contract cresator.
    */
   function finalization() internal {
     transferTokenOwnership(owner);
