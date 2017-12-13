@@ -96,7 +96,7 @@ contract cVEarlyBirdsCrowdsale is Finalizable {
    */
   function calculateBonus(uint256 amount) private pure returns (uint256) {
     uint256 bonusForAmount;
-    if (amount >= 200 ether) {
+    if (amount >= 50 ether) {
       bonusForAmount = amount.mul(65).div(100);
     } else {
       bonusForAmount = amount.mul(55).div(100);
