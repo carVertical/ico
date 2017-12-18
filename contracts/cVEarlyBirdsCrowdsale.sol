@@ -15,14 +15,7 @@ contract cVEarlyBirdsCrowdsale is Finalizable {
 
   uint256 public weiRaised;
 
-  /**
-   * Event for token purchase logging
-   * @param purchaser who paid for the tokens
-   * @param beneficiary who got the tokens
-   * @param value weis paid for purchase
-   * @param bonusWei bonus wei added to value
-   * @param amount amount of tokens purchased
-   */
+  // Event for token purchase logging
   event TokenPurchase(
     address indexed purchaser,
     address indexed beneficiary,
@@ -30,11 +23,8 @@ contract cVEarlyBirdsCrowdsale is Finalizable {
     uint256 bonusWei,
     uint256 amount
   );
-  /**
-   * Event for token ownership transfer
-   * @param previousOwner who owned token before
-   * @param newOwner who owns token now
-   */
+
+  // Event for token ownership transfer
   event TokenOwnershipTransferred(
     address indexed previousOwner,
     address indexed newOwner
