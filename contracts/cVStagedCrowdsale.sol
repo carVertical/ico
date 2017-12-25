@@ -25,7 +25,7 @@ contract cVStagedCrowdsale {
   }
   Stage[] stageList;
 
-  uint public stage = 0;
+  uint public currentStage = 0;
 
   uint256 private rate;
 
@@ -77,7 +77,7 @@ contract cVStagedCrowdsale {
 
     contributors[msg.sender] = contributors[msg.sender].add(msg.value);
 
-    TokenPurchase(msg.sender, msg.value, tokens, stage);
+    TokenPurchase(msg.sender, msg.value, tokens, currentStage);
 
     appendContributionToStage(msg.sender, msg.value);
   }
@@ -94,7 +94,7 @@ contract cVStagedCrowdsale {
 
     token.mint(_receiver, tokens);
 
-    TokenPurchase(_receiver, _value, tokens, stage);
+    TokenPurchase(_receiver, _value, tokens, currentStage);
 
     appendContributionToStage(_receiver, _value);
   }
@@ -117,17 +117,17 @@ contract cVStagedCrowdsale {
    * @param _value Value
    */
   function appendContributionToStage(address _sender, uint256 _value) private  {
-    if (crossingToNextStage(_value, 1)) {
-      uint256 amountAvailableForRefund = weiRaised.sub(stageList[stage].limit);
+    if (currentStage == 1 && willCrossToNextStage(_value)) {
+      uint256 amountAvailableForRefund = weiRaised.sub(stageList[currentStage].limit);
 
       wallet.transfer(this.balance.sub(amountAvailableForRefund));
       vault.deposit.value(amountAvailableForRefund)(_sender);
-    } else if (crossingToNextStage(_value, 2)) {
-      uint256 amountToBeTransfered = weiRaised.sub(stageList[stage].limit);
+    } else if (currentStage == 2 && willCrossToNextStage(_value)) {
+      uint256 amountToBeTransfered = weiRaised.sub(stageList[currentStage].limit);
 
       vault.deposit.value(this.balance.sub(amountToBeTransfered))(_sender);
       wallet.transfer(amountToBeTransfered);
-    } else if (stage == 2) {
+    } else if (currentStage == 2) {
       vault.deposit.value(_value)(_sender);
     } else {
       wallet.transfer(this.balance);
@@ -135,7 +135,7 @@ contract cVStagedCrowdsale {
 
     // Increment currnet Stage if wei raised crosses a limit.
     if (amountIsCrossingStageLimit()) {
-      stage = stage.add(1);
+      currentStage = currentStage.add(1);
     }
   }
 
@@ -153,7 +153,19 @@ contract cVStagedCrowdsale {
    * @return bool true if latest contributed crossed stage limit
    */
   function amountIsCrossingStageLimit() private view returns (bool) {
-    return (weiRaised >= stageList[stage].limit);
+    return (weiRaised >= totalStageLimit(currentStage));
+  }
+
+  /**
+   * @param _stage Stage to calculate full limit for
+   * @return uint256 the stage limit including previuose stages
+   */
+  function totalStageLimit(uint _stage) private view returns (uint256) {
+    uint256 limit = 0;
+    for (uint i = 0; i < _stage; i++) {
+      limit = limit.add(stageList[i].limit);
+    }
+    return limit;
   }
 
   /** Add Stage bonus to amount.
@@ -165,14 +177,12 @@ contract cVStagedCrowdsale {
     return _amount.mul(_stage.discount).div(100);
   }
 
-  /** Checks if contribution is crossing to the next stage.
-   * @param _amount The amount that might be crossing the stage.
-   * @param _stage Checks if stage is being crossed
-   * @return true if being crossed to next
+  /** Checks if contribution would cross to the next stage.
+   * @param _amount The amount to check.
+   * @return bool true if crossing to the next stage
    */
-  function crossingToNextStage(uint256 _amount, uint _stage) private view returns (bool) {
-    uint256 amountBeforeLastContribution = weiRaised.sub(_amount);
-    return (stage == _stage && amountBeforeLastContribution < stageList[stage].limit);
+  function willCrossToNextStage(uint256 _amount) private view returns (bool) {
+    return (totalStageLimit(currentStage) < weiRaised.add(_amount));
   }
 
   /** Calculates the amount of tokens for contributed amount
@@ -183,18 +193,18 @@ contract cVStagedCrowdsale {
   function calculateTokensForContributedAmount(uint256 _amount) private view returns (uint256) {
     uint256 totalAmountWithDiscount = 0;
 
-    Stage storage currentStage = stageList[stage];
-    Stage storage nextStage = stageList[stage.add(1)];
+    Stage storage _currentStage = stageList[currentStage];
+    Stage storage _nextStage = stageList[currentStage.add(1)];
 
     if (amountIsCrossingStageLimit()) {
-      uint256 amountOverStageLimit = weiRaised.sub(currentStage.limit);
+      uint256 amountOverStageLimit = weiRaised.sub(_currentStage.limit);
       uint256 amountUnderStageLimit = _amount.sub(amountOverStageLimit);
-      uint256 underLimitAmount = addBonus(amountUnderStageLimit, currentStage);
-      uint256 overLimitAmount = addBonus(amountOverStageLimit, nextStage);
+      uint256 underLimitAmount = addBonus(amountUnderStageLimit, _currentStage);
+      uint256 overLimitAmount = addBonus(amountOverStageLimit, _nextStage);
 
       totalAmountWithDiscount = underLimitAmount.add(overLimitAmount);
     } else {
-      totalAmountWithDiscount = addBonus(_amount, currentStage);
+      totalAmountWithDiscount = addBonus(_amount, _currentStage);
     }
 
     return totalAmountWithDiscount.mul(rate);
