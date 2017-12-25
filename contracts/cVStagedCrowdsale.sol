@@ -117,24 +117,24 @@ contract cVStagedCrowdsale {
    * @param _value Value
    */
   function appendContributionToStage(address _sender, uint256 _value) private  {
-    if (currentStage == 1 && willCrossToNextStage(_value)) {
+    if (currentStage == 0 && willCrossToNextStage(_value)) {
       uint256 amountAvailableForRefund = weiRaised.sub(stageList[currentStage].limit);
 
       wallet.transfer(this.balance.sub(amountAvailableForRefund));
       vault.deposit.value(amountAvailableForRefund)(_sender);
-    } else if (currentStage == 2 && willCrossToNextStage(_value)) {
+    } else if (currentStage == 1 && willCrossToNextStage(_value)) {
       uint256 amountToBeTransfered = weiRaised.sub(stageList[currentStage].limit);
 
       vault.deposit.value(this.balance.sub(amountToBeTransfered))(_sender);
       wallet.transfer(amountToBeTransfered);
-    } else if (currentStage == 2) {
+    } else if (currentStage == 1) {
       vault.deposit.value(_value)(_sender);
     } else {
       wallet.transfer(this.balance);
     }
 
     // Increment currnet Stage if wei raised crosses a limit.
-    if (amountIsCrossingStageLimit()) {
+    if (amountIsCrossingStageLimit() && currentStage.add(1) < stageList.length) {
       currentStage = currentStage.add(1);
     }
   }
@@ -160,9 +160,10 @@ contract cVStagedCrowdsale {
    * @param _stage Stage to calculate full limit for
    * @return uint256 the stage limit including previuose stages
    */
-  function totalStageLimit(uint _stage) private view returns (uint256) {
+  function totalStageLimit(uint _stage) public view returns (uint256) {
+    require(_stage < stageList.length);
     uint256 limit = 0;
-    for (uint i = 0; i < _stage; i++) {
+    for (uint i = 0; i < _stage.add(1); i++) {
       limit = limit.add(stageList[i].limit);
     }
     return limit;
