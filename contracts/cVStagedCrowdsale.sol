@@ -15,9 +15,6 @@ contract cVStagedCrowdsale {
   cVToken public token;
   RefundVault public vault;
 
-  // Contributors and their total contributions.
-  mapping (address => uint256) public contributors;
-
   // Stages are ICO waves. They define limits and discounts.
   struct Stage {
     uint256 limit;

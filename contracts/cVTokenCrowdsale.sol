@@ -116,18 +116,6 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
     vault.refund(msg.sender);
   }
 
-  /** Withdraw post-ICO bonus.
-   * @param _contributor Address to whitelist
-   */
-  function withdraw(address _contributor) public {
-      uint256 additionalTokens = calcPostICOBonusTokens(_contributor);  // We will not be doing this as we use special tokens for other case
-      if (additionalTokens > 0) {
-        WithdrawPostICOBonus(_contributor, contributors[_contributor], additionalTokens);
-        contributors[_contributor] = 0;
-        token.transfer(_contributor, additionalTokens);
-      }
-  }
-
   // Finalize and close crowdsale.
   function finalize() public onlyOwner {
     require(!isFinalized);
@@ -267,20 +255,6 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
 
     specialBalance = 0;
     token.mint(specialMintWallet, tokens);
-  }
-
-  /** Calculate post-ICO bonus for contributor.
-   * @param _contributor Address to calculate post-ICO bonus for
-   * @return uint256 post-ICO bonus for contributor
-   */
-  function calcPostICOBonusTokens(address _contributor) constant public returns (uint256) {
-    if (contributors[_contributor] > 0 && isFinalized) {
-      uint256 totalSold = kOrgValue.mul(43).div(100).sub(icoBalance);
-      uint256 value = contributors[_contributor];
-      return icoBalance.mul(value).div(totalSold).mul(kRate);
-    }
-
-    return 0;
   }
 
 }
