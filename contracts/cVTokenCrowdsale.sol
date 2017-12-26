@@ -88,15 +88,15 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
     earlyBirdsBalance = earlyBirdsBalance.sub(_value);
   }
 
-  function getStageLimit(uint8 _stage) returns (uint256) {
+  function getStageLimit(uint8 _stage) internal view returns (uint256) {
     return stageLimits[_stage];
   }
 
-  function getStageDiscount(uint8 _stage) returns (uint8) {
+  function getStageDiscount(uint8 _stage) internal view returns (uint8) {
     return stageDiscounts[_stage];
   }
 
-  function getStageCount() returns (uint8) {
+  function getStageCount() internal view returns (uint8) {
     return uint8(stageLimits.length);
   }
 
@@ -141,7 +141,7 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
     require(!(addresses.length > 100));
 
     for (uint8 i = 0; i < addresses.length; i++) {
-      token.transfer(addresses[i], amounts[i])
+      token.transfer(addresses[i], amounts[i]);
     }
   }
 
@@ -260,7 +260,7 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
   }
 
   function earlyBirdsLeftoverMint() private {
-    uint256 token = earlyBirdsBalance.mul(kRate);
+    uint256 tokens = earlyBirdsBalance.mul(kRate);
 
     earlyBirdsBalance = 0;
 

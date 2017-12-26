@@ -15,9 +15,9 @@ contract cVStagedCrowdsale {
   cVToken public token;
   RefundVault public vault;
 
-  function getStageLimit(uint8 _stage) returns (uint256);
-  function getStageDiscount(uint8 _stage) returns (uint8);
-  function getStageCount() returns (uint8);
+  function getStageLimit(uint8 _stage) internal view returns (uint256);
+  function getStageDiscount(uint8 _stage) internal view returns (uint8);
+  function getStageCount() internal view returns (uint8);
 
   uint8 public currentStage = 0;
 
