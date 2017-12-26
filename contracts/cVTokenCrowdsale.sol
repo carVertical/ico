@@ -125,14 +125,14 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
       // Mint leftover tokens.
       // Contributors will be able to withdraw them.
       uint256 leftoverWei = icoBalance.sub(weiRaised);
-      token.mint(this, leftoverWei.mul(kRate));  // 43%   // 23%
+      token.mint(this, leftoverWei.mul(kRate));
       token.changeTransferLock(false);
       token.transferOwnership(0x1);
     } else {
       vault.enableRefunds();
+      transferTokenOwnership(owner);
     }
 
-    transferTokenOwnership(owner);
     isFinalized = true;
   }
 
