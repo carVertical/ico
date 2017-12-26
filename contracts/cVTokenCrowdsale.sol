@@ -8,14 +8,11 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
   using SafeMath for uint256;
 
   // Start and end timestamps.
-  uint public startTime;
-  uint public endTime;
+  uint256 public startTime;
+  uint256 public endTime;
 
-  mapping (address => uint8) whitelist;
+  mapping (address => bool) whitelist;
   bool whiteListEnabled = false;
-
-  // Addresses of exchanges, so people do not contribute from exchange
-  mapping (address => uint8) blacklist;
 
   uint256 public membersCount = 0;
 
@@ -60,7 +57,6 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
   modifier validPurchase(address _sender, uint256 _amount) {
     require(msg.sender != 0x0);  // valid address
     isWhitelisted(msg.sender);  // is in whitelist
-    require(blacklist[msg.sender] == 0); // not in blacklist
     /* require(now >= startTime && now <= endTime);  // within ico range */
     require(msg.value >= kMinStake && msg.value <= kMaxStake);  // within purchase range
     _;
@@ -129,7 +125,6 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
       legalExpenses();
       specialMint();
 
-      // TODO - make sure 1% is minted for charity.
       // Mint leftover tokens.
       // Contributors will be able to withdraw them.
       token.mint(this, icoBalance.mul(kRate));
@@ -153,17 +148,9 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
    * @param _addr Address to whitelist
    */
   function addToWhitelist(address _addr) public onlyOwner {
-    require(whitelist[_addr] == 0);
-    whitelist[_addr] = 1;
+    require(!whitelist[_addr]);
+    whitelist[_addr] = true;
     membersCount = membersCount.add(1);
-  }
-
-  /** Blacklist an address
-   * @param _addr Address to blacklist
-   */
-  function addToBlacklist(address _addr) public onlyOwner {
-    require(blacklist[_addr] == 0);
-    blacklist[_addr] = 1;
   }
 
   /** Checks if contributor passes whitelist check.
@@ -172,7 +159,7 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
    */
   function isWhitelisted(address _sender) private view returns (bool) {
     if (whiteListEnabled) {
-      return (whitelist[_sender] > 0);
+      return (whitelist[_sender]);
     } else {
       return true;
     }
