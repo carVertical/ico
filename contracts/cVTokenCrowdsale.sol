@@ -17,6 +17,10 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
   bool public isFinalized = false;
   bool public forcedFinalize = false;
 
+  // Testing Mode
+  bool testMode = false;
+  uint256 testTime;
+
   // Event for token ownership transfer
   event TokenOwnershipTransferred(
     address indexed previousOwner,
@@ -33,9 +37,11 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
     uint256 _startTime,
     uint8 _period,
     address _wallet,
-    address _token
+    address _token,
+    bool _testMode
     ) cVOrganization() cVStagedCrowdsale(_wallet, _token, kRate) public {
-    /* require(_startTime > now); */
+    testMode = _testMode;
+    /* require(_startTime > getNow()); */
     require(_period > 0);
 
     startTime = _startTime;
@@ -49,7 +55,7 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
   modifier validPurchase(address _sender, uint256 _amount) {
     require(msg.sender != 0x0);  // valid address
     require(isWhitelisted(msg.sender));  // is in whitelist
-    /* require(now >= startTime && now <= endTime);  // within ico range */
+    require(getNow() >= startTime && getNow() <= endTime);  // within ico range
     require(msg.value >= kMinStake && msg.value <= kMaxStake);  // within purchase range
     _;
   }
@@ -61,6 +67,17 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
     } else {
       buyTokens();
     }
+  }
+
+
+  // Testing mode
+  function getNow() public view returns (uint256) {
+    return testMode ? testTime : now;
+  }
+
+  function setTestNow(uint256 time) public onlyOwner {
+    require(testMode);
+    testTime = time;
   }
 
   // Entry point for a contribution
@@ -111,7 +128,7 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
   // Finalize and close crowdsale.
   function finalize() public onlyOwner {
     require(!isFinalized);
-    require(now > endTime || icoBalance < kMinStake || forcedFinalize);
+    require(getNow() > endTime || icoBalance < kMinStake || forcedFinalize);
 
     if (softCapReached()) {
       vault.close();
@@ -165,7 +182,7 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
    * @param _sender Address to check
    * @return true If user is whitelisted or whitelisting is disabled.
    */
-  function isWhitelisted(address _sender) private view returns (bool) {
+  function isWhitelisted(address _sender) public view returns (bool) {
     if (whiteListEnabled) {
       return (whitelist[_sender]);
     } else {

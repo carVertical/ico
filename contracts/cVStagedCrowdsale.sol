@@ -65,7 +65,7 @@ contract cVStagedCrowdsale {
 
   // Entry point for a contribution
   function buyTokens() public payable {
-    uint256 refund = appendContribution(msg.sender, msg.value);
+    uint256 refund = appendContribution(msg.sender, msg.value, false);
 
     if (refund > 0) {
       msg.sender.transfer(refund);
@@ -77,7 +77,7 @@ contract cVStagedCrowdsale {
    * @param _value An amount of ether worth of tokens.
    */
   function manualTokenMint(address _receiver, uint256 _value) public {
-    uint256 refund = appendContribution(_receiver, _value);
+    uint256 refund = appendContribution(_receiver, _value, true);
 
     if (refund > 0) {
       ManualMintRequiresRefund(_receiver, refund);
@@ -102,7 +102,7 @@ contract cVStagedCrowdsale {
    * @param _value Value
    * @return uint256 refund
    */
-  function appendContribution(address _sender, uint256 _value) private returns (uint256 _refund) {
+  function appendContribution(address _sender, uint256 _value, bool _manual) private returns (uint256 _refund) {
     require(currentStage < getStageCount());
 
     weiRaised = weiRaised.add(_value);
@@ -122,26 +122,28 @@ contract cVStagedCrowdsale {
       }
     }
 
-    mintTokens(_value, _sender);
+    mintTokens(_value, _sender, _manual);
 
     if (excess > 0) {
       currentStage = currentStage + 1;
-      mintTokens(excess, _sender);
+      mintTokens(excess, _sender, _manual);
     }
   }
 
-  function mintTokens(uint256 _value, address _sender) private {
+  function mintTokens(uint256 _value, address _sender, bool _manual) private {
     uint256 tokens = _value.mul(rate).mul(getStageDiscount(currentStage)).div(100);
     TokenPurchase(_sender, _value, tokens, currentStage);
     token.mint(_sender, tokens);
 
     //   0 - to wallet
-    //   1 - to vault
+    //   1 - to vaults
     // 2-5 - to wallet
-    if (currentStage == 1) {
-      vault.deposit.value(_value)(_sender);
-    } else {
-      wallet.transfer(_value);
+    if (!_manual) {
+      if (currentStage == 1) {
+        vault.deposit.value(_value)(_sender);
+      } else {
+        wallet.transfer(_value);
+      }
     }
   }
 
