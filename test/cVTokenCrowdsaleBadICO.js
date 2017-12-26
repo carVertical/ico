@@ -15,6 +15,14 @@ const OneToken = new BigNumber(web3.toWei(1, 'ether'));
 
 contract('cVTokenCrowdsale-BAD-ICO', function(accounts) {
 
+  let kRate;
+
+  before(async () => {
+    let contract = await cVTokenCrowdsale.deployed();
+
+    kRate = await contract.kRate();
+  });
+
   it('ICO period should be 100 days', async () => {
     let contract = await cVTokenCrowdsale.deployed();
     let [start, end] = await Promise.all([contract.startTime(), contract.endTime()]);
@@ -71,7 +79,7 @@ contract('cVTokenCrowdsale-BAD-ICO', function(accounts) {
     expect(balanceBefore).to.be.bignumber.equal(0);
     await contract.sendTransaction({from: accounts[1], value: web3.toWei(1, 'ether')});
     let balanceAfter = await token.balanceOf(accounts[1]);
-    let expectedTokens = new BigNumber(web3.toWei(1, 'ether')).mul(42000).mul(145).div(100);
+    let expectedTokens = new BigNumber(web3.toWei(1, 'ether')).mul(kRate).mul(145).div(100);
     expect(balanceAfter).to.be.bignumber.equal(expectedTokens);
   });
 
@@ -81,8 +89,8 @@ contract('cVTokenCrowdsale-BAD-ICO', function(accounts) {
 
     await contract.sendTransaction({from: accounts[1], value: web3.toWei(1050, 'ether')});
     let balanceAfter = await token.balanceOf(accounts[1]);
-    let expectedTokensInStage0 = OneToken.mul(1050).mul(42000).mul(145).div(100);
-    let expectedTokensInStage1 = OneToken.mul(1).mul(42000).mul(135).div(100);
+    let expectedTokensInStage0 = OneToken.mul(1050).mul(kRate).mul(145).div(100);
+    let expectedTokensInStage1 = OneToken.mul(1).mul(kRate).mul(135).div(100);
     let expectedTokens = expectedTokensInStage0.add(expectedTokensInStage1);
     expect(balanceAfter).to.be.bignumber.equal(expectedTokens);
   });

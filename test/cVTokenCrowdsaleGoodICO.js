@@ -16,11 +16,13 @@ const OneToken = new BigNumber(web3.toWei(1, 'ether'));
 contract('cVTokenCrowdsale-GOOD-ICO', function(accounts) {
 
   let collectionWalletBalace = 0;
+  let kRate;
 
   before(async () => {
     let contract = await cVTokenCrowdsale.deployed();
 
     collectionWalletBalace = await web3.eth.getBalance(await contract.wallet());
+    kRate = await contract.kRate();
   });
 
   it('ICO period should be 100 days', async () => {
@@ -79,7 +81,7 @@ contract('cVTokenCrowdsale-GOOD-ICO', function(accounts) {
     expect(balanceBefore).to.be.bignumber.equal(0);
     await contract.sendTransaction({from: accounts[1], value: web3.toWei(1, 'ether')});
     let balanceAfter = await token.balanceOf(accounts[1]);
-    let expectedTokens = new BigNumber(web3.toWei(1, 'ether')).mul(42000).mul(145).div(100);
+    let expectedTokens = new BigNumber(web3.toWei(1, 'ether')).mul(kRate).mul(145).div(100);
     expect(balanceAfter).to.be.bignumber.equal(expectedTokens);
   });
 
@@ -90,8 +92,8 @@ contract('cVTokenCrowdsale-GOOD-ICO', function(accounts) {
 
     await contract.sendTransaction({from: accounts[1], value: web3.toWei(1050, 'ether')});
     let balanceAfter = await token.balanceOf(accounts[1]);
-    let expectedTokensInStage0 = OneToken.mul(1050).mul(42000).mul(145).div(100);
-    let expectedTokensInStage1 = OneToken.mul(1).mul(42000).mul(135).div(100);
+    let expectedTokensInStage0 = OneToken.mul(1050).mul(kRate).mul(145).div(100);
+    let expectedTokensInStage1 = OneToken.mul(1).mul(kRate).mul(135).div(100);
     let expectedTokens = expectedTokensInStage0.add(expectedTokensInStage1);
     expect(balanceAfter).to.be.bignumber.equal(expectedTokens);
   });
@@ -114,8 +116,8 @@ contract('cVTokenCrowdsale-GOOD-ICO', function(accounts) {
 
     await contract.sendTransaction({from: accounts[2], value: web3.toWei(2000, 'ether')});
     let balanceAfter = await token.balanceOf(accounts[2]);
-    let expectedTokensInStage1 = OneToken.mul(1999).mul(42000).mul(135).div(100);
-    let expectedTokensInStage2 = OneToken.mul(1).mul(42000).mul(125).div(100);
+    let expectedTokensInStage1 = OneToken.mul(1999).mul(kRate).mul(135).div(100);
+    let expectedTokensInStage2 = OneToken.mul(1).mul(kRate).mul(125).div(100);
     let expectedTokens = expectedTokensInStage1.add(expectedTokensInStage2);
     expect(balanceAfter).to.be.bignumber.equal(expectedTokens);
   });
@@ -129,8 +131,8 @@ contract('cVTokenCrowdsale-GOOD-ICO', function(accounts) {
     await contract.sendTransaction({from: accounts[2], value: web3.toWei(1500, 'ether')});
     await contract.sendTransaction({from: accounts[2], value: web3.toWei(1500, 'ether')});
     let balanceAfter = await token.balanceOf(accounts[2]);
-    let expectedTokensInStage2 = OneToken.mul(2999).mul(42000).mul(125).div(100);
-    let expectedTokensInStage3 = OneToken.mul(1).mul(42000).mul(115).div(100);
+    let expectedTokensInStage2 = OneToken.mul(2999).mul(kRate).mul(125).div(100);
+    let expectedTokensInStage3 = OneToken.mul(1).mul(kRate).mul(115).div(100);
     let expectedTokens = expectedTokensInStage2.add(expectedTokensInStage3);
     expect(balanceAfter.sub(balanceBefore)).to.be.bignumber.equal(expectedTokens);
   });
@@ -144,8 +146,8 @@ contract('cVTokenCrowdsale-GOOD-ICO', function(accounts) {
     await contract.sendTransaction({from: accounts[2], value: web3.toWei(1500, 'ether')});
     await contract.sendTransaction({from: accounts[2], value: web3.toWei(1500, 'ether')});
     let balanceAfter = await token.balanceOf(accounts[2]);
-    let expectedTokensInStage3 = OneToken.mul(2999).mul(42000).mul(115).div(100);
-    let expectedTokensInStage4 = OneToken.mul(1).mul(42000).mul(110).div(100);
+    let expectedTokensInStage3 = OneToken.mul(2999).mul(kRate).mul(115).div(100);
+    let expectedTokensInStage4 = OneToken.mul(1).mul(kRate).mul(110).div(100);
     let expectedTokens = expectedTokensInStage3.add(expectedTokensInStage4);
     expect(balanceAfter.sub(balanceBefore)).to.be.bignumber.equal(expectedTokens);
   });
@@ -159,7 +161,7 @@ contract('cVTokenCrowdsale-GOOD-ICO', function(accounts) {
     await contract.manualTokenMint(accounts[2], web3.toWei(100, 'ether'));
 
     let balanceAfter = await token.balanceOf(accounts[2]);
-    let expectedTokens = OneToken.mul(100).mul(42000).mul(110).div(100);
+    let expectedTokens = OneToken.mul(100).mul(kRate).mul(110).div(100);
 
     expect(balanceAfter.sub(balanceBefore)).to.be.bignumber.equal(expectedTokens);
   });
@@ -173,8 +175,8 @@ contract('cVTokenCrowdsale-GOOD-ICO', function(accounts) {
     await contract.sendTransaction({from: accounts[2], value: web3.toWei(1400, 'ether')});
     await contract.sendTransaction({from: accounts[2], value: web3.toWei(1500, 'ether')});
     let balanceAfter = await token.balanceOf(accounts[2]);
-    let expectedTokensInStage4 = OneToken.mul(2899).mul(42000).mul(110).div(100);
-    let expectedTokensInStage5 = OneToken.mul(1).mul(42000).mul(105).div(100);
+    let expectedTokensInStage4 = OneToken.mul(2899).mul(kRate).mul(110).div(100);
+    let expectedTokensInStage5 = OneToken.mul(1).mul(kRate).mul(105).div(100);
     let expectedTokens = expectedTokensInStage4.add(expectedTokensInStage5);
     expect(balanceAfter.sub(balanceBefore)).to.be.bignumber.equal(expectedTokens);
   });
@@ -190,7 +192,7 @@ contract('cVTokenCrowdsale-GOOD-ICO', function(accounts) {
     await contract.sendTransaction({from: accounts[2], value: web3.toWei(1500, 'ether')});
     await contract.sendTransaction({from: accounts[2], value: web3.toWei(1500, 'ether')});
     let balanceAfter = await token.balanceOf(accounts[2]);
-    let expectedTokensInStage5 = OneToken.mul(2999).mul(42000).mul(105).div(100);
+    let expectedTokensInStage5 = OneToken.mul(2999).mul(kRate).mul(105).div(100);
     let etherbalanceAfter = web3.fromWei(await web3.eth.getBalance(accounts[2]))
 
     const spentBalance = etherbalanceBefore.sub(etherbalanceAfter);
@@ -236,7 +238,7 @@ contract('cVTokenCrowdsale-GOOD-ICO', function(accounts) {
     let token = await cVToken.at(await contract.token());
 
     let tokenBalanceTeamYear1 = await token.balanceOf(await contract.teamYear1());
-    let originalTeamBalance = (await contract.kOrgValue()).mul(42000).mul(14).div(100);
+    let originalTeamBalance = (await contract.kOrgValue()).mul(kRate).mul(14).div(100);
 
     expect(tokenBalanceTeamYear1).to.be.bignumber.equal(originalTeamBalance.div(4));
   });
