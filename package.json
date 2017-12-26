@@ -1,13 +1,13 @@
 {
-  "name": "carVerticalCrowdsale",
+  "name": "car-vertical-crowdsale",
   "version": "1.0.0",
-  "description": "",
+  "description": "carVertical ICO",
   "main": "2_initial_cVToken.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "truffle test"
   },
   "repository": {
     "type": "git",
