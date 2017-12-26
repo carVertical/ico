@@ -24,6 +24,6 @@ contract Finalizable is Ownable {
     isFinalized = true;
   }
 
-  function finalization() internal {}
+  function finalization() internal;
 
 }
