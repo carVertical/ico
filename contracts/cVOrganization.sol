@@ -12,7 +12,7 @@ contract cVOrganization {
    * kMaxStake - Max amount of Ether that can be contributed.
    * kTotalEth - Entire organization value in Ether.
    */
-  uint256 public constant kRate = 42000;
+  uint256 public constant kRate = 240000;
   uint256 public constant kMinStake = 0.1 ether;
   uint256 public constant kMaxStake = 2000 ether;
   uint256 public constant kOrgValue = 35000 ether;
