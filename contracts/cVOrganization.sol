@@ -17,6 +17,23 @@ contract cVOrganization {
   uint256 public constant kMaxStake = 2000 ether;
   uint256 public constant kOrgValue = 35000 ether;
 
+  uint256[6] internal stageLimits = [
+    1050 ether,
+    3050 ether,
+    6050 ether,
+    9050 ether,
+    12050 ether,
+    15050 ether
+  ];
+  uint8[6] internal stageDiscounts = [
+    145,
+    135,
+    125,
+    115,
+    110,
+    105
+  ];
+
   // Organization token distribution
   uint256 internal icoBalance = kOrgValue.mul(43).div(100);
   uint256 internal teamBalance = kOrgValue.mul(14).div(100);
@@ -40,7 +57,11 @@ contract cVOrganization {
 
   address public specialMintWallet = 0x198e13017d2333712bd942d8b028610b95c363da;
 
+  address public earlyBirdsWallet = 0x198e13017d2333712bd942d8b028610b95c363da;
+
   function cVOrganization() public {
+    require(stageLimits[stageLimits.length.sub(1)] == icoBalance);
+    require(stageLimits.length == stageDiscounts.length);
     uint256 mintedBeforeICO = 85 ether;
     earlyBirdsBalance = earlyBirdsBalance.sub(mintedBeforeICO);
   }

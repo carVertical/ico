@@ -14,21 +14,13 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
   mapping (address => bool) whitelist;
   bool whiteListEnabled = false;
 
-  uint256 public membersCount = 0;
-
   bool public isFinalized = false;
+  bool public forcedFinalize = false;
 
   // Event for token ownership transfer
   event TokenOwnershipTransferred(
     address indexed previousOwner,
     address indexed newOwner
-  );
-
-  // Event for post-ICO token bonus withdrawal
-  event WithdrawPostICOBonus(
-    address indexed contributor,
-    uint256 contributed,
-    uint256 bonus
   );
 
   /**
@@ -56,7 +48,7 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
    */
   modifier validPurchase(address _sender, uint256 _amount) {
     require(msg.sender != 0x0);  // valid address
-    isWhitelisted(msg.sender);  // is in whitelist
+    require(isWhitelisted(msg.sender));  // is in whitelist
     /* require(now >= startTime && now <= endTime);  // within ico range */
     require(msg.value >= kMinStake && msg.value <= kMaxStake);  // within purchase range
     _;
@@ -73,11 +65,7 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
 
   // Entry point for a contribution
   function buyTokens() validPurchase(msg.sender, msg.value) public payable {
-    require(weiRaised.add(msg.value) <= icoBalance);
-
     super.buyTokens();
-
-    icoBalance = icoBalance.sub(msg.value);
   }
 
   /** Mint tokens for BTC,LTC,Fiat contributions.
@@ -85,11 +73,7 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
    * @param _value An amount of ether worth of tokens.
    */
   function manualTokenMint(address _receiver, uint256 _value) public onlyOwner {
-    require(!(icoBalance.sub(_value) < 0));
-
     super.manualTokenMint(_receiver, _value);
-
-    icoBalance = icoBalance.sub(_value);
   }
 
   /** Mint tokens for early product adopters.
@@ -97,11 +81,23 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
    * @param _value An amount of ether worth of tokens.
    */
   function manualEarlyBirdsTokenMint(address _receiver, uint256 _value) public onlyOwner {
-    require(!(earlyBirdsBalance.sub(_value) < 0));
+    require(_value <= earlyBirdsBalance);
 
     super.manualEarlyBirdsTokenMint(_receiver, _value);
 
     earlyBirdsBalance = earlyBirdsBalance.sub(_value);
+  }
+
+  function getStageLimit(uint8 _stage) returns (uint256) {
+    return stageLimits[_stage];
+  }
+
+  function getStageDiscount(uint8 _stage) returns (uint8) {
+    return stageDiscounts[_stage];
+  }
+
+  function getStageCount() returns (uint8) {
+    return uint8(stageLimits.length);
   }
 
   // Entry point for refund
@@ -115,7 +111,7 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
   // Finalize and close crowdsale.
   function finalize() public onlyOwner {
     require(!isFinalized);
-    require(now > endTime || icoBalance < kMinStake);
+    require(now > endTime || icoBalance < kMinStake || forcedFinalize);
 
     if (softCapReached()) {
       vault.close();
@@ -124,10 +120,14 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
       foundersReward();
       legalExpenses();
       specialMint();
+      earlyBirdsLeftoverMint();
 
       // Mint leftover tokens.
       // Contributors will be able to withdraw them.
-      token.mint(this, icoBalance.mul(kRate));
+      uint256 leftoverWei = icoBalance.sub(weiRaised);
+      token.mint(this, leftoverWei.mul(kRate));  // 43%   // 23%
+      token.changeTransferLock(false);
+      token.transferOwnership(0x1);
     } else {
       vault.enableRefunds();
     }
@@ -136,11 +136,20 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
     isFinalized = true;
   }
 
+  function distributeICOLeftover(address[] addresses, uint256[] amounts) public onlyOwner {
+    require(addresses.length == amounts.length);
+    require(!(addresses.length > 100));
+
+    for (uint8 i = 0; i < addresses.length; i++) {
+      token.transfer(addresses[i], amounts[i])
+    }
+  }
+
   /**
    * @return true If soft cap is reached.
    */
   function softCapReached() private constant returns (bool) {
-    uint256 softCap = stageLimits[1];
+    uint256 softCap = getStageLimit(1);
     return weiRaised >= softCap;
   }
 
@@ -150,7 +159,6 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
   function addToWhitelist(address _addr) public onlyOwner {
     require(!whitelist[_addr]);
     whitelist[_addr] = true;
-    membersCount = membersCount.add(1);
   }
 
   /** Checks if contributor passes whitelist check.
@@ -170,6 +178,10 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
    */
   function changeWhitelistStatus(bool _enabled) public onlyOwner {
     whiteListEnabled = _enabled;
+  }
+
+  function changeForceFinalizeStatus(bool _enabled) public onlyOwner {
+    forcedFinalize = _enabled;
   }
 
   /** Allows the current owner to transfer control of the contracts token to a newOwner
@@ -234,6 +246,7 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
     uint256 tokens = legalExpensesBalance.mul(kRate);
 
     legalExpensesBalance = 0;
+
     token.mint(legalExpensesWallet, tokens);
   }
 
@@ -242,7 +255,16 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
     uint256 tokens = specialBalance.mul(kRate);
 
     specialBalance = 0;
+
     token.mint(specialMintWallet, tokens);
+  }
+
+  function earlyBirdsLeftoverMint() private {
+    uint256 token = earlyBirdsBalance.mul(kRate);
+
+    earlyBirdsBalance = 0;
+
+    token.mint(earlyBirdsWallet, tokens);
   }
 
 }

@@ -11,7 +11,7 @@ module.exports = function(deployer) {
     return deployer.deploy(
       cVTokenCrowdsale,
       startTime,
-      1,
+      period,
       wallet,
       cVToken.address
     );

@@ -15,23 +15,11 @@ contract cVStagedCrowdsale {
   cVToken public token;
   RefundVault public vault;
 
-  uint256[6] internal stageLimits = [
-    1050 ether,
-    3050 ether,
-    6050 ether,
-    9050 ether,
-    12050 ether,
-    15050 ether
-  ];
-  uint8[6] private stageDiscounts = [
-    145,
-    135,
-    125,
-    115,
-    110,
-    105
-  ];
-  uint public currentStage = 0;
+  function getStageLimit(uint8 _stage) returns (uint256);
+  function getStageDiscount(uint8 _stage) returns (uint8);
+  function getStageCount() returns (uint8);
+
+  uint8 public currentStage = 0;
 
   uint256 private rate;
 
@@ -115,18 +103,19 @@ contract cVStagedCrowdsale {
    * @return uint256 refund
    */
   function appendContribution(address _sender, uint256 _value) private returns (uint256 _refund) {
-    require(currentStage < stageLimits.length);
+    require(currentStage < getStageCount());
 
     weiRaised = weiRaised.add(_value);
 
     uint256 excess;
 
-    if (weiRaised > stageLimits[currentStage]) {
-      excess = weiRaised.sub(stageLimits[currentStage]);
+    uint256 stageLimit = getStageLimit(currentStage);
+    if (weiRaised > stageLimit) {
+      excess = weiRaised.sub(stageLimit);
       _value = _value.sub(excess);
 
       // Excess should be refunded if we are at the last stage.
-      if (currentStage == stageLimits.length.sub(1)) {
+      if (currentStage == getStageCount() - 1) {
         _refund = excess;
         weiRaised = weiRaised.sub(excess);
         excess = 0;
@@ -136,13 +125,13 @@ contract cVStagedCrowdsale {
     mintTokens(_value, _sender);
 
     if (excess > 0) {
-      currentStage = currentStage.add(1);
+      currentStage = currentStage + 1;
       mintTokens(excess, _sender);
     }
   }
 
   function mintTokens(uint256 _value, address _sender) private {
-    uint256 tokens = _value.mul(rate).mul(stageDiscounts[currentStage]).div(100);
+    uint256 tokens = _value.mul(rate).mul(getStageDiscount(currentStage)).div(100);
     TokenPurchase(_sender, _value, tokens, currentStage);
     token.mint(_sender, tokens);
 
