@@ -15,7 +15,7 @@ contract cVStagedCrowdsale {
   cVToken public token;
   RefundVault public vault;
 
-  uint256[6] private stageLimits = [
+  uint256[6] internal stageLimits = [
     1050 ether,
     3050 ether,
     6050 ether,
@@ -112,7 +112,7 @@ contract cVStagedCrowdsale {
    ** Increment stage if needed.
    * @param _sender Contributorf
    * @param _value Value
-   * @returns uint256 refund
+   * @return uint256 refund
    */
   function appendContribution(address _sender, uint256 _value) private returns (uint256 _refund) {
     require(currentStage < stageLimits.length);

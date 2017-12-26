@@ -18,12 +18,12 @@ contract cVOrganization {
   uint256 public constant kOrgValue = 35000 ether;
 
   // Organization token distribution
-  uint256 public icoBalance;
-  uint256 public teamBalance;
-  uint256 public foundersBalance;
-  uint256 public earlyBirdsBalance;
-  uint256 public legalExpensesBalance;
-  uint256 public specialBalance;  // TODO - make sure 1% is minted for charity.
+  uint256 internal icoBalance = kOrgValue.mul(43).div(100);
+  uint256 internal teamBalance = kOrgValue.mul(14).div(100);
+  uint256 internal foundersBalance = kOrgValue.mul(13).div(100);
+  uint256 internal earlyBirdsBalance = kOrgValue.mul(23).div(100);
+  uint256 internal legalExpensesBalance = kOrgValue.mul(6).div(100);
+  uint256 internal specialBalance = kOrgValue.mul(1).div(100);
 
   // Organization wallets
   address public teamYear1 = 0x198e13017d2333712bd942d8b028610b95c363da;
@@ -41,18 +41,8 @@ contract cVOrganization {
   address public specialMintWallet = 0x198e13017d2333712bd942d8b028610b95c363da;
 
   function cVOrganization() public {
-    setupBalances();
-
     uint256 mintedBeforeICO = 85 ether;
-    earlyBirdsBalance.sub(mintedBeforeICO);
+    earlyBirdsBalance = earlyBirdsBalance.sub(mintedBeforeICO);
   }
 
-  function setupBalances() private {
-    icoBalance = kOrgValue.mul(43).div(100);
-    teamBalance = kOrgValue.mul(14).div(100);
-    foundersBalance = kOrgValue.mul(13).div(100);
-    earlyBirdsBalance = kOrgValue.mul(23).div(100);
-    legalExpensesBalance = kOrgValue.mul(6).div(100);
-    specialBalance = kOrgValue.mul(1).div(100);
-  }
 }

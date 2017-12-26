@@ -129,6 +129,7 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
       legalExpenses();
       specialMint();
 
+      // TODO - make sure 1% is minted for charity.
       // Mint leftover tokens.
       // Contributors will be able to withdraw them.
       token.mint(this, icoBalance.mul(kRate));
@@ -144,7 +145,7 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
    * @return true If soft cap is reached.
    */
   function softCapReached() private constant returns (bool) {
-    uint256 softCap = stageList[0].limit.add(stageList[1].limit);
+    uint256 softCap = stageLimits[1];
     return weiRaised >= softCap;
   }
 
