@@ -12,7 +12,7 @@ contract cVOrganization {
    * kMaxStake - Max amount of Ether that can be contributed.
    * kTotalEth - Entire organization value in Ether.
    */
-  uint256 public constant kRate = 42000;
+  uint256 public constant kRate = 240000;
   uint256 public constant kMinStake = 0.1 ether;
   uint256 public constant kMaxStake = 2000 ether;
   uint256 public constant kOrgValue = 35000 ether;
@@ -36,11 +36,12 @@ contract cVOrganization {
 
   // Organization token distribution
   uint256 internal icoBalance = kOrgValue.mul(43).div(100);
-  uint256 internal teamBalance = kOrgValue.mul(14).div(100);
-  uint256 internal foundersBalance = kOrgValue.mul(13).div(100);
+  uint256 internal teamBalance = kOrgValue.mul(12).div(100);
+  uint256 internal foundersBalance = kOrgValue.mul(10).div(100);
   uint256 internal earlyBirdsBalance = kOrgValue.mul(23).div(100);
   uint256 internal legalExpensesBalance = kOrgValue.mul(6).div(100);
   uint256 internal specialBalance = kOrgValue.mul(1).div(100);
+  uint256 internal teamICOBonusBalance = kOrgValue.mul(5).div(100);
 
   // Organization wallets
   address public teamYear1 = 0x66BD5aDa347071D73D3cb6fc21dCAee28DB6f356;
@@ -54,6 +55,7 @@ contract cVOrganization {
   address public foundersYear4 = 0x4c57513Abec55c9FfF8e7aBF915B63E94eDb0eFC;
 
   address public legalExpensesWallet = 0x5661c9a1899fbF122F6ca9de26144f2ff2213a50;
+  address public teamICOBonusWallet = 0x5661c9a1899fbF122F6ca9de26144f2ff2213a50;
 
   address public specialMintWallet = 0x3FEA3828f22d0AD4846F0D20CC145070D96BC85b;
 

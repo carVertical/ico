@@ -119,6 +119,7 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
       teamReward();
       foundersReward();
       legalExpenses();
+      teamICOBonus();
       specialMint();
       earlyBirdsLeftoverMint();
 
@@ -248,6 +249,15 @@ contract cVTokenCrowdsale is Ownable, cVOrganization, cVStagedCrowdsale {
     legalExpensesBalance = 0;
 
     token.mint(legalExpensesWallet, tokens);
+  }
+
+  // Mint tokens for Team ICO Bonus
+  function teamICOBonus() private {
+    uint256 tokens = teamICOBonusBalance.mul(kRate);
+
+    teamICOBonusBalance = 0;
+
+    token.mint(teamICOBonusWallet, tokens);
   }
 
   // Special Mint
